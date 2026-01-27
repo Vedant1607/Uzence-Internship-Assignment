@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type {
   FormErrors,
   FormSchema,
@@ -6,6 +6,7 @@ import type {
   PrimitiveValue,
 } from "./schema";
 import { validateForm } from "./validate";
+import { loadAutosave, saveAutosave, clearAutosave } from "./autosave";
 
 export interface FormEngine {
   values: FormValues;
@@ -25,20 +26,18 @@ function resolveInitialValues(schema: FormSchema): FormValues {
 
   const walk = (nodes: FormSchema["fields"]) => {
     nodes.forEach((node) => {
-      if ("fields" in node && node.type === "group") {
+      if (node.type === "group") {
         walk(node.fields);
         return;
       }
 
-      if ("fields" in node && node.type === "repeater") {
+      if (node.type === "repeater") {
         values[node.name] = [];
         return;
       }
 
-      if ("name" in node) {
-        values[node.name] =
-          node.defaultValue !== undefined ? node.defaultValue : null;
-      }
+      values[node.name] =
+        node.defaultValue !== undefined ? node.defaultValue : null;
     });
   };
 
@@ -47,28 +46,36 @@ function resolveInitialValues(schema: FormSchema): FormValues {
 }
 
 export function useFormEngine(schema: FormSchema): FormEngine {
-  const [values, setValues] = useState<FormValues>(() =>
-    resolveInitialValues(schema)
-  );
+  const [values, setValues] = useState<FormValues>(() => {
+    const saved = loadAutosave(schema);
+    return saved ?? resolveInitialValues(schema);
+  });
 
   const [touched, setTouchedState] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<FormErrors>({});
-  const [asyncErrors, setAsyncErrors] = useState<
-    Record<string, string | null>
-  >({});
+  const [asyncErrors, setAsyncErrors] = useState<Record<string, string | null>>(
+    {},
+  );
 
   const isDirty = useMemo(() => {
     return Object.values(touched).some(Boolean);
   }, [touched]);
 
+  useEffect(() => {
+    if (!isDirty) return;
+    saveAutosave(schema, values);
+  }, [values, isDirty, schema]);
+
   const setValue = useCallback(
     (name: string, value: PrimitiveValue | PrimitiveValue[]) => {
-      setValues((prev): FormValues => ({
-        ...prev,
-        [name]: value,
-      }));
+      setValues(
+        (prev): FormValues => ({
+          ...prev,
+          [name]: value,
+        }),
+      );
     },
-    []
+    [],
   );
 
   const setTouched = useCallback((name: string) => {
@@ -89,6 +96,7 @@ export function useFormEngine(schema: FormSchema): FormEngine {
     setTouchedState({});
     setErrors({});
     setAsyncErrors({});
+    clearAutosave(schema);
   }, [schema]);
 
   return {
