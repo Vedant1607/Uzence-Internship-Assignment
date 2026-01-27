@@ -1,10 +1,9 @@
 import { FieldWrapper } from "./FieldWrapper";
-import type { PrimitiveValue } from "../schema";
 
 interface TextFieldProps {
   name: string;
   label: string;
-  value: PrimitiveValue;
+  value: string | null;
   error?: string;
   description?: string;
   onChange: (value: string) => void;
@@ -27,7 +26,7 @@ export function TextField({
       <input
         id={id}
         type="text"
-        value={typeof value === "string" ? value : ""}
+        value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
         aria-invalid={Boolean(error)}

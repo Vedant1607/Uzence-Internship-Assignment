@@ -1,18 +1,16 @@
 import { Fragment, type JSX } from "react";
-import type { FieldSchema, FormSchema, SchemaNode } from "./form/schema";
-import { useFormEngine } from "./form/useFormEngine";
-import { TextField } from "./form/fields/TextField";
-import { NumberField } from "./form/fields/NumberField";
-import { CheckboxField } from "./form/fields/CheckboxField";
-import { SelectField } from "./form/fields/SelectField";
+import type { FormSchema, SchemaNode, FieldSchema } from "./schema";
+import { useFormEngine } from "./useFormEngine";
+
+import { TextField } from "./fields/TextField";
+import { NumberField } from "./fields/NumberField";
+import { CheckboxField } from "./fields/CheckboxField";
+import { SelectField } from "./fields/SelectField";
+
 interface FormRendererProps {
   schema: FormSchema;
   onSubmit: (values: unknown) => void;
 }
-
-/* =========================================
-   Field Renderer
-   ========================================= */
 
 function renderField(
   field: FieldSchema,
