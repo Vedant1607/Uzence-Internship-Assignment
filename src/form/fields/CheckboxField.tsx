@@ -5,6 +5,7 @@ interface CheckboxFieldProps {
   label: string;
   checked: boolean;
   error?: string;
+  disabled?: boolean;
   description?: string;
   onChange: (checked: boolean) => void;
   onBlur: () => void;
@@ -15,6 +16,7 @@ export function CheckboxField({
   label,
   checked,
   error,
+  disabled,
   description,
   onChange,
   onBlur,
@@ -27,8 +29,10 @@ export function CheckboxField({
         id={id}
         type="checkbox"
         checked={checked}
+        disabled={disabled}
         onChange={(e) => onChange(e.target.checked)}
         onBlur={onBlur}
+        aria-disabled={!disabled ? undefined : true}
         aria-invalid={Boolean(error)}
         className="mr-2"
       />

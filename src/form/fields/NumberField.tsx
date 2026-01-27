@@ -6,6 +6,7 @@ interface NumberFieldProps {
   label: string;
   value: PrimitiveValue;
   error?: string;
+  disabled?:boolean;
   description?: string;
   onChange: (value: number | null) => void;
   onBlur: () => void;
@@ -16,6 +17,7 @@ export function NumberField({
   label,
   value,
   error,
+  disabled,
   description,
   onChange,
   onBlur,
@@ -27,11 +29,13 @@ export function NumberField({
       <input
         id={id}
         type="number"
+        disabled={disabled}
         value={typeof value === "number" ? value : ""}
         onChange={(e) =>
           onChange(e.target.value === "" ? null : Number(e.target.value))
         }
         onBlur={onBlur}
+        aria-disabled={!disabled ? undefined : true}
         aria-invalid={Boolean(error)}
         aria-describedby={
           error ? `${id}-error` : description ? `${id}-desc` : undefined

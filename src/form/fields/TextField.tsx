@@ -4,6 +4,7 @@ interface TextFieldProps {
   name: string;
   label: string;
   value: string | null;
+  disabled?: boolean;
   error?: string;
   description?: string;
   onChange: (value: string) => void;
@@ -15,6 +16,7 @@ export function TextField({
   label,
   value,
   error,
+  disabled,
   description,
   onChange,
   onBlur,
@@ -26,6 +28,8 @@ export function TextField({
       <input
         id={id}
         type="text"
+        disabled={disabled}
+        aria-disabled={!disabled ? undefined : true}
         value={value ?? ""}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}

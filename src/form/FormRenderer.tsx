@@ -6,6 +6,7 @@ import { TextField } from "./fields/TextField";
 import { NumberField } from "./fields/NumberField";
 import { CheckboxField } from "./fields/CheckboxField";
 import { SelectField } from "./fields/SelectField";
+import { resolveFieldState } from "./logic";
 
 interface FormRendererProps {
   schema: FormSchema;
@@ -19,6 +20,8 @@ function renderField(
   const { values, errors, setValue, setTouched } = engine;
 
   const rawValue = values[field.name];
+  const state = resolveFieldState(field, values);
+  if (!state.visible) return null;
 
   const common = {
     name: field.name,
@@ -37,6 +40,7 @@ function renderField(
           {...common}
           value={value}
           onChange={(v) => setValue(field.name, v)}
+          disabled={!state.enabled}
         />
       );
     }

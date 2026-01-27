@@ -7,6 +7,7 @@ interface SelectFieldProps {
   value: string | null;
   options: SelectOption[];
   error?: string;
+  disabled?: boolean;
   description?: string;
   onChange: (value: string) => void;
   onBlur: () => void;
@@ -18,6 +19,7 @@ export function SelectField({
   value,
   options,
   error,
+  disabled,
   description,
   onChange,
   onBlur,
@@ -29,8 +31,10 @@ export function SelectField({
       <select
         id={id}
         value={value ?? ""}
+        disabled={disabled}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
+        aria-disabled={!disabled ? undefined : true}
         aria-invalid={Boolean(error)}
         aria-describedby={
           error ? `${id}-error` : description ? `${id}-desc` : undefined
