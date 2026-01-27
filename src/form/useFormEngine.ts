@@ -1,10 +1,16 @@
 import { useCallback, useMemo, useState } from "react";
-import type { FormErrors, FormSchema, FormValues, PrimitiveValue } from "./schema";
+import type {
+  FormErrors,
+  FormSchema,
+  FormValues,
+  PrimitiveValue,
+} from "./schema";
 import { validateForm } from "./validate";
 
 export interface FormEngine {
   values: FormValues;
   errors: FormErrors;
+  asyncErrors: Record<string, string | null>;
   touched: Record<string, boolean>;
   isDirty: boolean;
 
@@ -42,22 +48,28 @@ function resolveInitialValues(schema: FormSchema): FormValues {
 
 export function useFormEngine(schema: FormSchema): FormEngine {
   const [values, setValues] = useState<FormValues>(() =>
-    resolveInitialValues(schema),
+    resolveInitialValues(schema)
   );
 
   const [touched, setTouchedState] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<FormErrors>({});
+  const [asyncErrors, setAsyncErrors] = useState<
+    Record<string, string | null>
+  >({});
 
   const isDirty = useMemo(() => {
     return Object.values(touched).some(Boolean);
   }, [touched]);
 
-  const setValue = useCallback((name: string, value: PrimitiveValue | PrimitiveValue[]) => {
-    setValues((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  }, []);
+  const setValue = useCallback(
+    (name: string, value: PrimitiveValue | PrimitiveValue[]) => {
+      setValues((prev): FormValues => ({
+        ...prev,
+        [name]: value,
+      }));
+    },
+    []
+  );
 
   const setTouched = useCallback((name: string) => {
     setTouchedState((prev) => ({
@@ -76,11 +88,13 @@ export function useFormEngine(schema: FormSchema): FormEngine {
     setValues(resolveInitialValues(schema));
     setTouchedState({});
     setErrors({});
+    setAsyncErrors({});
   }, [schema]);
 
   return {
     values,
     errors,
+    asyncErrors,
     touched,
     isDirty,
     setValue,

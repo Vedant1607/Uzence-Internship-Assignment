@@ -22,6 +22,12 @@ export interface Condition {
   exists?: boolean;
 }
 
+export interface AsyncValidation {
+  key: string;
+  validate: (value: PrimitiveValue) => Promise<string | null>;
+  debounceMs?: number;
+}
+
 export interface BaseFieldSchema {
   name: string;
   label: string;
@@ -29,9 +35,12 @@ export interface BaseFieldSchema {
   description?: string;
   defaultValue?: PrimitiveValue;
   validation?: BaseValidation;
+
   visibleWhen?: Condition;
   enabledWhen?: Condition;
   requiredWhen?: Condition;
+
+  asyncValidation?: AsyncValidation; // ✅ NEW
 }
 
 export interface TextFieldSchema extends BaseFieldSchema {
