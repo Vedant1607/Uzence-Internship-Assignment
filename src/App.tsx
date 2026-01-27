@@ -1,158 +1,55 @@
-import { Fragment, type JSX } from "react";
-import type { FieldSchema, FormSchema, SchemaNode } from "./form/schema";
-import { useFormEngine } from "./form/useFormEngine";
-import { TextField } from "./form/fields/TextField";
-import { NumberField } from "./form/fields/NumberField";
-import { CheckboxField } from "./form/fields/CheckboxField";
-import { SelectField } from "./form/fields/SelectField";
-interface FormRendererProps {
-  schema: FormSchema;
-  onSubmit: (values: unknown) => void;
-}
+import { FormRenderer } from "./form/FormRenderer";
+import type { FormSchema } from "./form/schema";
 
-/* =========================================
-   Field Renderer
-   ========================================= */
+const schema: FormSchema = {
+  version: 1,
+  fields: [
+    {
+      type: "text",
+      name: "username",
+      label: "Username",
+      validation: { required: true, minLength: 3 },
+    },
+    {
+      type: "number",
+      name: "age",
+      label: "Age",
+      validation: { min: 18 },
+    },
+    {
+      type: "checkbox",
+      name: "newsletter",
+      label: "Subscribe to newsletter",
+    },
+    {
+      type: "select",
+      name: "country",
+      label: "Country",
+      options: [
+        { label: "India", value: "in" },
+        { label: "USA", value: "us" },
+      ],
+    },
+  ],
+};
 
-function renderField(
-  field: FieldSchema,
-  engine: ReturnType<typeof useFormEngine>
-): JSX.Element | null {
-  const { values, errors, setValue, setTouched } = engine;
-
-  const rawValue = values[field.name];
-
-  const common = {
-    name: field.name,
-    label: field.label,
-    error: errors[field.name],
-    description: field.description,
-    onBlur: () => setTouched(field.name),
-  };
-
-  switch (field.type) {
-    case "text": {
-      const value = typeof rawValue === "string" ? rawValue : null;
-
-      return (
-        <TextField
-          {...common}
-          value={value}
-          onChange={(v) => setValue(field.name, v)}
-        />
-      );
-    }
-
-    case "number": {
-      const value = typeof rawValue === "number" ? rawValue : null;
-
-      return (
-        <NumberField
-          {...common}
-          value={value}
-          onChange={(v) => setValue(field.name, v)}
-        />
-      );
-    }
-
-    case "checkbox": {
-      const checked = rawValue === true;
-
-      return (
-        <CheckboxField
-          {...common}
-          checked={checked}
-          onChange={(v) => setValue(field.name, v)}
-        />
-      );
-    }
-
-    case "select": {
-      const value = typeof rawValue === "string" ? rawValue : null;
-
-      return (
-        <SelectField
-          {...common}
-          value={value}
-          options={field.options ?? []}
-          onChange={(v) => setValue(field.name, v)}
-        />
-      );
-    }
-
-    default:
-      return null;
-  }
-}
-
-function renderNode(
-  node: SchemaNode,
-  engine: ReturnType<typeof useFormEngine>
-): JSX.Element | null {
-  if (node.type === "group") {
-    return (
-      <fieldset className="border p-4 mb-4">
-        {node.label && (
-          <legend className="font-semibold mb-2">{node.label}</legend>
-        )}
-        {node.fields.map((child) => (
-          <Fragment key={child.name}>
-            {renderNode(child, engine)}
-          </Fragment>
-        ))}
-      </fieldset>
-    );
-  }
-
-  if (node.type === "repeater") {
-    const items = engine.values[node.name];
-
-    return (
-      <div className="mb-4">
-        {node.label && <h3 className="font-semibold mb-2">{node.label}</h3>}
-
-        {Array.isArray(items) &&
-          items.map((_, index) => (
-            <div key={index} className="border p-3 mb-2">
-              {node.fields.map((child) => (
-                <Fragment key={child.name}>
-                  {renderNode(child, engine)}
-                </Fragment>
-              ))}
-            </div>
-          ))}
-      </div>
-    );
-  }
-
-  return renderField(node as FieldSchema, engine);
-}
-
-export function FormRenderer({ schema, onSubmit }: FormRendererProps) {
-  const engine = useFormEngine(schema);
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    if (engine.validate()) {
-      onSubmit(engine.values);
-    }
-  };
-
+function App() {
   return (
-    <form onSubmit={handleSubmit} noValidate>
-      {schema.fields.map((node) => (
-        <Fragment key={node.name}>
-          {renderNode(node, engine)}
-        </Fragment>
-      ))}
+    <div className="min-h-screen bg-gray-50 p-6">
+      <div className="max-w-xl mx-auto bg-white p-6 rounded shadow">
+        <h1 className="text-xl font-semibold mb-4">
+          Schema Driven Form Demo
+        </h1>
 
-      <button
-        type="submit"
-        className="mt-4 px-4 py-2 rounded bg-black text-white"
-      >
-        Submit
-      </button>
-    </form>
+        <FormRenderer
+          schema={schema}
+          onSubmit={(values) => {
+            console.log("Submitted values:", values);
+            alert(JSON.stringify(values, null, 2));
+          }}
+        />
+      </div>
+    </div>
   );
 }
+export default App;
