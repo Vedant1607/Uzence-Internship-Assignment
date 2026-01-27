@@ -6,6 +6,7 @@ interface SelectFieldProps {
   label: string;
   value: string | null;
   options: SelectOption[];
+  loading?: boolean;
   error?: string;
   disabled?: boolean;
   description?: string;
@@ -13,11 +14,13 @@ interface SelectFieldProps {
   onBlur: () => void;
 }
 
+
 export function SelectField({
   name,
   label,
   value,
   options,
+  loading,
   error,
   disabled,
   description,
@@ -31,17 +34,18 @@ export function SelectField({
       <select
         id={id}
         value={value ?? ""}
-        disabled={disabled}
+        disabled={disabled || loading}
         onChange={(e) => onChange(e.target.value)}
         onBlur={onBlur}
         aria-disabled={!disabled ? undefined : true}
+        aria-busy={loading || undefined}
         aria-invalid={Boolean(error)}
         aria-describedby={
           error ? `${id}-error` : description ? `${id}-desc` : undefined
         }
         className="w-full border rounded px-3 py-2"
       >
-        <option value="">Select an option</option>
+        <option value="">{loading ? " Loading..." : "Select an option"}</option>
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>
             {opt.label}

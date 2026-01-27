@@ -7,6 +7,7 @@ import { NumberField } from "./fields/NumberField";
 import { CheckboxField } from "./fields/CheckboxField";
 import { SelectField } from "./fields/SelectField";
 import { resolveFieldState } from "./logic";
+import { useAsyncOptions } from "./asyncOptions";
 
 interface FormRendererProps {
   schema: FormSchema;
@@ -15,7 +16,7 @@ interface FormRendererProps {
 
 function renderField(
   field: FieldSchema,
-  engine: ReturnType<typeof useFormEngine>
+  engine: ReturnType<typeof useFormEngine>,
 ): JSX.Element | null {
   const { values, errors, setValue, setTouched } = engine;
 
@@ -72,11 +73,17 @@ function renderField(
     case "select": {
       const value = typeof rawValue === "string" ? rawValue : null;
 
+      const { options, loading, error } = field.asyncOptions
+        ? useAsyncOptions(field.asyncOptions.key, field.asyncOptions.loader)
+        : { options: field.options ?? [], loading: false, error: null };
+
       return (
         <SelectField
           {...common}
           value={value}
-          options={field.options ?? []}
+          options={options}
+          loading={loading}
+          error={error ?? common.error}
           onChange={(v) => setValue(field.name, v)}
         />
       );
@@ -89,7 +96,7 @@ function renderField(
 
 function renderNode(
   node: SchemaNode,
-  engine: ReturnType<typeof useFormEngine>
+  engine: ReturnType<typeof useFormEngine>,
 ): JSX.Element | null {
   if (node.type === "group") {
     return (
@@ -98,9 +105,7 @@ function renderNode(
           <legend className="font-semibold mb-2">{node.label}</legend>
         )}
         {node.fields.map((child) => (
-          <Fragment key={child.name}>
-            {renderNode(child, engine)}
-          </Fragment>
+          <Fragment key={child.name}>{renderNode(child, engine)}</Fragment>
         ))}
       </fieldset>
     );
@@ -144,9 +149,7 @@ export function FormRenderer({ schema, onSubmit }: FormRendererProps) {
   return (
     <form onSubmit={handleSubmit} noValidate>
       {schema.fields.map((node) => (
-        <Fragment key={node.name}>
-          {renderNode(node, engine)}
-        </Fragment>
+        <Fragment key={node.name}>{renderNode(node, engine)}</Fragment>
       ))}
 
       <button
